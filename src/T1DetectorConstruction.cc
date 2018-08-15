@@ -64,7 +64,7 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
   //Elements and pure materials
   G4Material* Ag = nist->FindOrBuildMaterial("G4_Ag");
   G4Material* Ni = nist->FindOrBuildMaterial("G4_Ni");
-  G4Material* He = nist->FindOrBuildMaterial("G4_He");
+  //G4Material* He = nist->FindOrBuildMaterial("G4_He"); Currently not in use
   G4Element* elCr = nist->FindOrBuildElement("Cr");
   G4Element* elMn = nist->FindOrBuildElement("Mn");
   G4Element* elC = nist->FindOrBuildElement("C");
@@ -81,6 +81,10 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
   G4Element* elH = nist->FindOrBuildElement("H");
   G4Element* elV = nist->FindOrBuildElement("V");
   G4Element* elMg = nist->FindOrBuildElement("Mg");
+  G4Element* elZn = nist->FindOrBuildElement("Zn");
+  G4Element* elCs = nist->FindOrBuildElement("Cs");
+  G4Element* elCo = nist->FindOrBuildElement("Co");
+  
 
   G4Element* elOw = new G4Element("18Oxygen", "18O", ncomponents=3);
   elOw->AddIsotope(O18, abudance = 98.3*perCent);
@@ -99,7 +103,16 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
                                           kStateGas, temperature, pressure);
   G4vacuum->AddMaterial(Air, fractionmass=1.);
 
-  // Cooling He to be written pressure 10 - 20 kPa
+ //New Helium cooling, mostly for the inert atmosphere. No actual cooling.
+  pressure = 1.21e5*pascal;			//101.325kPa + 20kPa   
+  temperature = 295.15*kelvin;			//273.15K+22K
+  density = 0.1979*kg/m3;			//calculated based on pressure and temperature
+  G4Material*G4helium = new G4Material(name="G4helium", density, nel=1, kStateGas, temperature, pressure);
+  G4helium->AddMaterial(Air, fractionmass=1);
+  
+  
+  
+  // Cooling He to be written with a over pressure of 10 - 20 kPa
   //  pressure = 2.0e4*pascal;                         //applied preasure
   //  temperature = 273.15*kelvin;                     //STP temperature, easily changed to 22*celcius
   //  density = 35.25*g/m3;	                           //pV=nRT and n=m/M => density m/V=pM/RT
@@ -139,33 +152,69 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
 
   //  G4Material* Concrete = nist->FindOrBuildMaterial("G4_CONCRETE");
 
-  //Concrete
-  density = 2.3*g/cm3;
-  G4Material* Concrete = new G4Material("Concrete", density, nel = 8);
-  Concrete -> AddElement(elO, 24.97*perCent);
+  // Old Concrete
+ // density = 2.3*g/cm3;
+ // G4Material* Concrete = new G4Material("Concrete", density, nel = 8);
+ // Concrete -> AddElement(elO, 24.97*perCent);
+ // Concrete -> AddElement(elC, 24.97*perCent);
+ // Concrete -> AddElement(elSi, 18.50*perCent);
+ // Concrete -> AddElement(elCa, 20.35*perCent);
+ // Concrete -> AddElement(elAl, 3.70*perCent);
+ // Concrete -> AddElement(elFe, 3.00*perCent);
+ // Concrete -> AddElement(elEu, (9.0e-7)*perCent);
+ // Concrete -> AddMaterial(water, 4.50*perCent);
+
+  //New Concrete based on the messurements by Delft (neutron activation)
+  density = 2.45*g/cm3;
+  G4Material*Concrete = new G4Material("Concrete", density, nel = 11);
+  Concrete -> AddElement(elO, 25.66198296*perCent);
   Concrete -> AddElement(elC, 24.97*perCent);
   Concrete -> AddElement(elSi, 18.50*perCent);
   Concrete -> AddElement(elCa, 20.35*perCent);
   Concrete -> AddElement(elAl, 3.70*perCent);
-  Concrete -> AddElement(elFe, 3.00*perCent);
-  Concrete -> AddElement(elEu, (9.0e-7)*perCent);
+  Concrete -> AddElement(elFe, 2.318*perCent);
+  Concrete -> AddElement(elEu, (9.38e-7)*perCent);
+  Concrete -> AddElement(elCo, (7.93e-6)*perCent);
+  Concrete -> AddElement(elZn, (5.80e-6)*perCent);
+  Concrete -> AddElement(elCs, (2.38e-6)*perCent);
   Concrete -> AddMaterial(water, 4.50*perCent);
 
+  
+  
+  
+  
+  // Old Magnetit concrete
   // Magnetit concrete Fe 61.74 %, magnetit (Fe2O3) 17.89 %, Concrete 20.37 %
   // A.A. El-Sawy, Arab Journal of Nuclear Science and Applications, vol 50, 3, (151-158) 2017 
-  density = 5.2*g/cm3;
-  G4Material* Fe2O3 = new G4Material("Magnetit", density, nel = 2);
-  Fe2O3 -> AddElement(elFe, natoms = 3);
-  Fe2O3 -> AddElement(elO, natoms = 4);
-  density = 5.11*g/cm3;
-  G4Material* MagnetitConcrete = new G4Material("MagConcrete", density, nel = 3);
+  //density = 5.2*g/cm3;
+  //G4Material* Fe2O3 = new G4Material("Magnetit", density, nel = 2);
+  //Fe2O3 -> AddElement(elFe, natoms = 3);
+  //Fe2O3 -> AddElement(elO, natoms = 4);
+  //density = 5.11*g/cm3;
+  //G4Material* MagnetiteConcrete = new G4Material("MagConcrete", density, nel = 3);
+  //MagnetitConcrete -> AddElement(elFe, 61.74*perCent);
+  //MagnetitConcrete -> AddMaterial(Fe2O3, 26.19*perCent);
+  //MagnetitConcrete -> AddMaterial(Concrete, 12.07*perCent);
+
+
+  // New Magnetite Concrete Wall
+  //Mostly based on results from Delft (neutron activation)
+  density=3.505*g/cm3;
+  G4Material* MagnetitConcrete = new G4Material("MagConcrete", density, nel = 12);
   MagnetitConcrete -> AddElement(elFe, 61.74*perCent);
-  MagnetitConcrete -> AddMaterial(Fe2O3, 26.19*perCent);
-  MagnetitConcrete -> AddMaterial(Concrete, 12.07*perCent);
-
-
+  MagnetitConcrete -> AddElement(elO,  53.97367444*perCent);
+  MagnetitConcrete -> AddElement(elZn, 3.96e-4*perCent);
+  MagnetitConcrete -> AddElement(elEu, 1.70e-7*perCent);
+  MagnetitConcrete -> AddElement(elCo, 1.47e-4*perCent);
+  MagnetitConcrete -> AddElement(elCs, 8.78e-7*perCent);
+  MagnetitConcrete -> AddElement(elC,  2.713270818*perCent);
+  MagnetitConcrete -> AddElement(elSi, 2.010232685*perCent);
+  MagnetitConcrete -> AddElement(elCa, 2.211255953*perCent);
+  MagnetitConcrete -> AddElement(elAl, 0.402046537*perCent);
+  MagnetitConcrete -> AddMaterial(water, 0.488975518*perCent);
+  
   // Bitumen http://rahabitumen.com/bitumen-components/
-
+MagnetitConcrete -> AddElement(elZn, 3.96e-4*perCent);
   density = 1.03*g/cm3;
   G4Material* Bitumen = new G4Material("Bitumen", density, nel = 12);
   Bitumen -> AddElement(elC, 84*perCent);
@@ -204,7 +253,7 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
   G4double waterShieldingz1 = 0.70*m;     // half of the water shielding hight
   G4double waterShieldingz2 = 0.53*m;     // half of the water shielding hight
   G4double concreteWallx = 0.15*m;        // half of the wall width
-  G4double concreteWally = 2.20*m;        // half of the wall hight
+  G4double concreteWally = 2.10*m;        // half of the wall hight  //used to be 2.20*m
   G4double concreteWallz = 3.75*m;        // half of the wall thickness
   G4double concreteFloorx = 3.5*m;        // half of the wall width
   G4double concreteFloory = 0.25*m;        // half of the wall hight
@@ -268,7 +317,7 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
  new G4PVPlacement(0,                             // rotation
 		   G4ThreeVector(3.4*m, 0, 0),   // translation
 		    logicConcreteWall,            // logic volume
-		    "ConcreteWallLv1",            // name
+		    "ConcreteWallLv2",            // name
 		    logicWorld,                   // mother volume
 		    false,                        // boolean operator
 		    2,                            // copy number
@@ -284,7 +333,7 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
 							   0);                   // user limits
 
   new G4PVPlacement(0,                            // rotation
-		    G4ThreeVector(0, 2.40*m, 0), // translation
+		    G4ThreeVector(0, 2.35*m, 0), // translation
 		    logicConcreteFloor,            // logic volume
 		    "ConcreteRoofLv1",            // name
 		    logicWorld,                   // mother volume
@@ -293,7 +342,7 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
 		    checkOverlaps);               // check for overlaps
 
  new G4PVPlacement(0,                             // rotation
-		   G4ThreeVector(0, -2.40*m, 0),   // translation
+		   G4ThreeVector(0, -2.35*m, 0),   // translation
 		    logicConcreteFloor,            // logic volume
 		    "ConcreteFloorLv1",            // name
 		    logicWorld,                   // mother volume
@@ -505,7 +554,7 @@ G4VPhysicalVolume* T1DetectorConstruction::Construct()
 // Helium cooling
   G4Tubs* solidHeliumCooling = new G4Tubs("HeliumCooling", innerRadius, outerRadius, heliumlength, startAngle, spanningAngle);
   G4LogicalVolume* logicHeliumCooling = new G4LogicalVolume(solidHeliumCooling,    // solid
-							    He,                    // material
+							    G4helium,                    // material used to be He
 							    "HeliumCooling",       // name
 							    0,                     // field manager
 							    0,                     // sesitive detector
